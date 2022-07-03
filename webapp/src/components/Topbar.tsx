@@ -6,6 +6,10 @@ import { MenuIcon, XIcon } from "@heroicons/react/outline";
 import classNames from "classnames";
 import { ConnectWalletButton } from "./ConnectWalletButton";
 
+// Assets
+import logoSrc from "../assets/img/logo.png";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
 export interface TopbarProps {}
 
 interface NavigationLink {
@@ -15,17 +19,14 @@ interface NavigationLink {
 }
 
 export const Topbar: FC<TopbarProps> = (props) => {
-  const { accountAddress, loading } = useWeb3();
+  const { accountAddress, loading, connectWallet } = useWeb3();
+  const location = useLocation();
+  const navigate = useNavigate();
   const links: NavigationLink[] = [
-    { name: "Dashboard", href: "#", current: true },
-    { name: "Team", href: "#", current: false },
-    { name: "Projects", href: "#", current: false },
-    { name: "Calendar", href: "#", current: false },
+    { name: "Home", href: "/", current: true },
+    { name: "About", href: "/about", current: false },
   ];
   const renderUserInfo = () => {
-    if (loading) {
-      return null;
-    }
     if (accountAddress) {
       return (
         <div className="dropdown dropdown-end">
@@ -38,20 +39,21 @@ export const Topbar: FC<TopbarProps> = (props) => {
           >
             <li>
               <a className="justify-between">
-                Profile
-                <span className="badge">New</span>
+                My Tokens
+                <span className="badge badge-primary">2</span>
               </a>
-            </li>
-            <li>
-              <a>Settings</a>
             </li>
           </ul>
         </div>
       );
     }
-    return (
-      <ConnectWalletButton />
-    );
+    return <ConnectWalletButton />;
+  };
+  const onMintClick = async () => {
+    if (!accountAddress) {
+      await connectWallet();
+    }
+    navigate("/mint");
   };
   return (
     <Disclosure as="nav" className="bg-gray-800">
@@ -70,20 +72,34 @@ export const Topbar: FC<TopbarProps> = (props) => {
                 </Disclosure.Button>
               </div>
               <div className="flex-1">
-                <a className="btn btn-ghost normal-case text-xl">daisyUI</a>
+                <Link to="/" className="btn btn-ghost normal-case text-xl">
+                  <img src={logoSrc} alt="PlantMint" className="h-8" />
+                </Link>
               </div>
             </div>
             <div className="navbar-center hidden lg:flex">
               <ul className="menu menu-horizontal p-0">
                 {links.map((link) => (
                   <li className="mr-2 last:mr-0">
-                    <a href={link.href}>{link.name}</a>
+                    <Link to={link.href}>{link.name}</Link>
                   </li>
                 ))}
               </ul>
             </div>
             <div className="navbar-end">
-              <div className="flex-none">{renderUserInfo()}</div>
+              {!loading && (
+                <>
+                  {location.pathname !== "/mint" && (
+                    <button
+                      className="btn btn-primary mr-4"
+                      onClick={onMintClick}
+                    >
+                      Plant & Mint
+                    </button>
+                  )}
+                  <div className="flex-none">{renderUserInfo()}</div>
+                </>
+              )}
             </div>
           </div>
 
