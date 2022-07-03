@@ -1,12 +1,18 @@
 import React, { FC, useState } from "react";
 import { MainLayout } from "../layouts/MainLayout";
 import plantPhotoSrc from "../assets/img/plant-photo.png";
-import { CameraIcon, UploadIcon } from "@heroicons/react/outline";
+import {
+  CameraIcon,
+  LocationMarkerIcon,
+  MapIcon,
+  UploadIcon,
+} from "@heroicons/react/outline";
 import { useForm } from "react-hook-form";
 import { uploadWeb3Files } from "../lib/uploadFile";
 import classNames from "classnames";
 import { renameFile } from "../utils/file";
 import { uriToGatewayUrl } from "../utils/web3storage";
+import { LocationPicker } from "../components/LocationPicker";
 
 export interface MintProps {}
 
@@ -14,6 +20,10 @@ interface FormValues {
   imageUri: string;
   name: string;
   treeSpecies: string;
+  location: {
+    lat: number;
+    lng: number;
+  };
 }
 
 type Step = "PHOTO" | "DETAILS" | "MINT";
@@ -24,6 +34,7 @@ export const Mint: FC<MintProps> = (props) => {
   const [step, setStep] = useState<Step>("PHOTO");
   const [loading, setLoading] = useState<boolean>(false);
   const [imageFile, setImageFile] = useState<File>();
+  const [locationPickerOpen, setLocationPickerOpen] = useState<boolean>(false);
   const {
     register,
     handleSubmit,
@@ -31,7 +42,11 @@ export const Mint: FC<MintProps> = (props) => {
     getValues,
     setValue,
     formState: { errors },
-  } = useForm<FormValues>();
+  } = useForm<FormValues>({
+    defaultValues: {
+      location: {},
+    },
+  });
   const onSubmit = (data: FormValues) => {
     console.log(data);
     if (step !== "DETAILS") {
@@ -64,8 +79,23 @@ export const Mint: FC<MintProps> = (props) => {
   const uploadBtnClasses = classNames("btn btn-outline btn-primary w-full", {
     loading,
   });
+  const onLocationChange = (lat: number, lng: number) => {
+    setValue("location.lat", lat);
+    setValue("location.lng", lng);
+  };
+  const disableSubmit =
+    !values.imageUri ||
+    !values.name ||
+    !values.treeSpecies ||
+    !values.location.lat ||
+    !values.location.lng;
   return (
     <MainLayout>
+      <LocationPicker
+        open={locationPickerOpen}
+        setOpen={setLocationPickerOpen}
+        onChange={onLocationChange}
+      />
       <div className="card bg-base-100 shadow-md max-w-lg mx-auto mt-12">
         <div className="p-8 border-b">{renderProgress()}</div>
         <div>
@@ -177,6 +207,21 @@ export const Mint: FC<MintProps> = (props) => {
                       )}
                     </label>
                   </div>
+
+                  <div className="form-control w-full mt-4">
+                    <label className="label">
+                      <span className="label-text">
+                        Where the tree was planted?
+                      </span>
+                    </label>
+                    <button
+                      className="btn btn-outline btn-primary"
+                      onClick={() => setLocationPickerOpen(true)}
+                    >
+                      <LocationMarkerIcon className="w-5 h-5 mr-2" />
+                      Pick Location
+                    </button>
+                  </div>
                 </div>
                 <div className="border-t p-4 flex justify-between">
                   <button
@@ -187,12 +232,7 @@ export const Mint: FC<MintProps> = (props) => {
                   >
                     Back
                   </button>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    onClick={() => setStep("DETAILS")}
-                    disabled={!values.imageUri}
-                  >
+                  <button type="submit" className="btn btn-primary" disabled={disableSubmit}>
                     Next
                   </button>
                 </div>
