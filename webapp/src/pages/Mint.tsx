@@ -13,6 +13,7 @@ import classNames from "classnames";
 import { renameFile } from "../utils/file";
 import { uriToGatewayUrl } from "../utils/web3storage";
 import { LocationPicker } from "../components/LocationPicker";
+import { Country, reverseGeocode } from "../utils/gmaps";
 
 export interface MintProps {}
 
@@ -21,6 +22,10 @@ interface FormValues {
   name: string;
   treeSpecies: string;
   location: {
+    country: {
+      name: string;
+      code: string;
+    },
     lat: number;
     lng: number;
   };
@@ -41,6 +46,7 @@ export const Mint: FC<MintProps> = (props) => {
     watch,
     getValues,
     setValue,
+    setError,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
@@ -79,9 +85,10 @@ export const Mint: FC<MintProps> = (props) => {
   const uploadBtnClasses = classNames("btn btn-outline btn-primary w-full", {
     loading,
   });
-  const onLocationChange = (lat: number, lng: number) => {
+  const onLocationChange = async (lat: number, lng: number, country: Country) => {
     setValue("location.lat", lat);
     setValue("location.lng", lng);
+    setValue('location.country', country)
   };
   const disableSubmit =
     !values.imageUri ||
@@ -214,6 +221,18 @@ export const Mint: FC<MintProps> = (props) => {
                         Where the tree was planted?
                       </span>
                     </label>
+
+                    {values?.location?.country?.name ? (
+                      <div className="mb-4 text-sm">
+                        {values.location.country.name} <span>({values.location.lat}, {values.location.lng})</span>
+                      </div>
+                    ): (
+                      <div className="text-base-content text-opacity-60 mb-2">
+                        (Not selected)
+                      </div>
+                    )}
+
+
                     <button
                       className="btn btn-outline btn-primary"
                       onClick={() => setLocationPickerOpen(true)}
@@ -221,6 +240,11 @@ export const Mint: FC<MintProps> = (props) => {
                       <LocationMarkerIcon className="w-5 h-5 mr-2" />
                       Pick Location
                     </button>
+                    {errors && errors.name && (
+                        <span className="label-text-alt text-error-content mt-4">
+                          Please, insert a valid name
+                        </span>
+                      )}
                   </div>
                 </div>
                 <div className="border-t p-4 flex justify-between">
