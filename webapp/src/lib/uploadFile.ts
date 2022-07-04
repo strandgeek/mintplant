@@ -13,3 +13,10 @@ export const uploadWeb3Files = async (inputFiles: FileList | File[]): Promise<We
   const files = await res.files()
   return files
 }
+
+export const uploadWeb3Json = async (data: any, filename: string): Promise<Web3File> => {
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' })
+  const file = new File([blob], filename)
+  const [web3File] = await uploadWeb3Files([file])
+  return web3File
+}

@@ -25,7 +25,9 @@ export const web3Context = createContext<Web3Context>({
 export const Web3ComponentsProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const { ethersProvider, accountAddress, chainId } = useContext(web3Context)
   return (
-    <BasicProvider value={{}}>
+    <BasicProvider value={{
+      cryptoIconsBaseUrl: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@bea1a9722a8c63169dcc06e86182bf2c55a76bbc/svg',
+    }}>
       <EthProvider value={{ ethersProvider, accountAddress, chainId }}>
         {children}
       </EthProvider>

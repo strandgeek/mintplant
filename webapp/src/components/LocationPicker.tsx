@@ -40,7 +40,8 @@ export const LocationPicker: FC<LocationPickerProps> = ({
     onChange(lat, lng, country);
   };
 
-  const onConfirm = () => {
+  const onConfirm = (e: any) => {
+    e.preventDefault()
     if (location) {
       onChange(location.lat, location.lng, location.country)
       setOpen(false)
@@ -71,10 +72,10 @@ export const LocationPicker: FC<LocationPickerProps> = ({
         </div>
       )}
       <div className="mt-6 text-right">
-        <button className="btn btn-ghost" onClick={() => setOpen(false)}>
+        <button type="button" className="btn btn-ghost" onClick={() => setOpen(false)}>
           Cancel
         </button>
-        <button className="ml-4 btn btn-outline btn-primary" disabled={!!error} onClick={onConfirm}>
+        <button type="button" className="ml-4 btn btn-outline btn-primary" disabled={!!error} onClick={onConfirm}>
           Select Location
         </button>
       </div>

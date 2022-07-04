@@ -8,24 +8,28 @@ import {
   UploadIcon,
 } from "@heroicons/react/outline";
 import { useForm } from "react-hook-form";
-import { uploadWeb3Files } from "../lib/uploadFile";
+import { uploadWeb3Files, uploadWeb3Json } from "../lib/uploadFile";
 import classNames from "classnames";
 import { renameFile } from "../utils/file";
-import { uriToGatewayUrl } from "../utils/web3storage";
 import { LocationPicker } from "../components/LocationPicker";
 import { Country, reverseGeocode } from "../utils/gmaps";
+import { uriToGatewayUrl } from "../utils/web3storage";
+import { MyTransactionSummary } from "react-web3-daisyui/dist/eth";
+import { useWeb3 } from "../hooks/useWeb3";
+import { getShortString } from "../utils/string";
+import { CryptoAmount } from "react-web3-daisyui";
 
 export interface MintProps {}
 
 interface FormValues {
-  imageUri: string;
+  image: string;
   name: string;
   treeSpecies: string;
   location: {
     country: {
       name: string;
       code: string;
-    },
+    };
     lat: number;
     lng: number;
   };
@@ -35,29 +39,36 @@ type Step = "PHOTO" | "DETAILS" | "MINT";
 
 const STEPS: Step[] = ["PHOTO", "DETAILS", "MINT"];
 
-export const Mint: FC<MintProps> = (props) => {
+export const Mint: FC<MintProps> = () => {
   const [step, setStep] = useState<Step>("PHOTO");
   const [loading, setLoading] = useState<boolean>(false);
-  const [imageFile, setImageFile] = useState<File>();
   const [locationPickerOpen, setLocationPickerOpen] = useState<boolean>(false);
+  const [metadata, setMetadata] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
   const {
     register,
     handleSubmit,
-    watch,
     getValues,
     setValue,
-    setError,
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
       location: {},
     },
   });
-  const onSubmit = (data: FormValues) => {
-    console.log(data);
+  const { accountAddress, chainId } = useWeb3();
+  const onSubmit = async (data: FormValues) => {
+    if (!data.location.country) {
+      return
+    }
     if (step !== "DETAILS") {
       return;
     }
+    setIsSubmitting(true)
+    const metadata = await uploadWeb3Json(data, "metadata.json");
+    setMetadata(metadata.cid);
+    setStep("MINT");
+    setIsSubmitting(false)
   };
   const renderProgress = () => {
     const currentIdx = STEPS.findIndex((s) => s === step);
@@ -80,22 +91,27 @@ export const Mint: FC<MintProps> = (props) => {
     const [web3File] = await uploadWeb3Files([file]);
     setLoading(false);
     const uri = `ipfs://${web3File.cid}`;
-    setValue("imageUri", `ipfs://${web3File.cid}`);
+    setValue("image", uri);
   };
   const uploadBtnClasses = classNames("btn btn-outline btn-primary w-full", {
     loading,
   });
-  const onLocationChange = async (lat: number, lng: number, country: Country) => {
+  const onLocationChange = async (
+    lat: number,
+    lng: number,
+    country: Country
+  ) => {
     setValue("location.lat", lat);
     setValue("location.lng", lng);
-    setValue('location.country', country)
+    setValue("location.country", country);
   };
   const disableSubmit =
-    !values.imageUri ||
+    !values.image ||
     !values.name ||
     !values.treeSpecies ||
     !values.location.lat ||
     !values.location.lng;
+  const metadataUri = `ipfs://${metadata}`
   return (
     <MainLayout>
       <LocationPicker
@@ -112,12 +128,12 @@ export const Mint: FC<MintProps> = (props) => {
                 <div className="p-8 w-full">
                   <div className="w-full text-center">
                     <div className="flex-col items-center justify-center">
-                      {values.imageUri ? (
+                      {values.image ? (
                         <div>
                           <img
                             alt="Upload Preview"
                             className="w-full h-80 object-cover mb-4"
-                            src={uriToGatewayUrl(values.imageUri)}
+                            src={uriToGatewayUrl(values.image)}
                           />
                         </div>
                       ) : (
@@ -146,7 +162,7 @@ export const Mint: FC<MintProps> = (props) => {
                           ) : (
                             <>
                               <CameraIcon className="h-4 w-4 mr-2" />
-                              {values.imageUri
+                              {values.image
                                 ? "Take Another Picture"
                                 : "Take Picture"}
                             </>
@@ -166,7 +182,7 @@ export const Mint: FC<MintProps> = (props) => {
                   <button
                     className="btn btn-primary"
                     onClick={() => setStep("DETAILS")}
-                    disabled={!values.imageUri}
+                    disabled={!values.image}
                   >
                     Next
                   </button>
@@ -224,27 +240,33 @@ export const Mint: FC<MintProps> = (props) => {
 
                     {values?.location?.country?.name ? (
                       <div className="mb-4 text-sm">
-                        {values.location.country.name} <span>({values.location.lat}, {values.location.lng})</span>
+                        {values.location.country.name}{" "}
+                        <span>
+                          ({values.location.lat}, {values.location.lng})
+                        </span>
                       </div>
-                    ): (
+                    ) : (
                       <div className="text-base-content text-opacity-60 mb-2">
                         (Not selected)
                       </div>
                     )}
 
-
                     <button
                       className="btn btn-outline btn-primary"
-                      onClick={() => setLocationPickerOpen(true)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setLocationPickerOpen(true)
+                      }}
                     >
                       <LocationMarkerIcon className="w-5 h-5 mr-2" />
                       Pick Location
                     </button>
                     {errors && errors.name && (
-                        <span className="label-text-alt text-error-content mt-4">
-                          Please, insert a valid name
-                        </span>
-                      )}
+                      <span className="label-text-alt text-error-content mt-4">
+                        Please, insert a valid name
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="border-t p-4 flex justify-between">
@@ -252,12 +274,102 @@ export const Mint: FC<MintProps> = (props) => {
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => setStep("PHOTO")}
-                    disabled={!values.imageUri}
+                    disabled={!values.image}
                   >
                     Back
                   </button>
-                  <button type="submit" className="btn btn-primary" disabled={disableSubmit}>
-                    Next
+                  <button
+                    type="submit"
+                    className={isSubmitting ? 'btn btn-ghost loading' : 'btn btn-primary'}
+                    disabled={disableSubmit}
+                  >
+                    {isSubmitting ? 'Uploading Metadata...' : 'Next'}
+                  </button>
+                </div>
+              </div>
+            )}
+            {step === "MINT" && (
+              <div>
+                <div className="p-8">
+                  {accountAddress && (
+                    <div>
+                      <h1 className="text-lg mb-4">
+                        Transaction Summary
+                      </h1>
+                      <MyTransactionSummary
+                        content={[
+                          {
+                            name: "Token Info",
+                            infos: [
+                              {
+                                label: "Name",
+                                value: values.name,
+                              },
+                              {
+                                label: "Tree Species",
+                                value: values.treeSpecies,
+                              },
+                              {
+                                label: "Country",
+                                value: values.location?.country.name || 'None',
+                              },
+                              {
+                                label: "Longitude",
+                                value: values.location?.lng,
+                              },
+                              {
+                                label: "Latitude",
+                                value: values.location?.lat,
+                              },
+                              {
+                                label: "Metadata",
+                                value: (
+                                  <a href={uriToGatewayUrl(metadataUri)} className="text-primary" target="_blank" rel="noreferrer">
+                                    ipfs://{getShortString(metadata || '')}
+                                  </a>
+                                ),
+                              }
+                            ]
+                          },
+                          {
+                            name: "Gas and Fees",
+                            infos: [
+                              {
+                                label: "Gas",
+                                value: "1000",
+                              },
+                              {
+                                label: "Gas Fee",
+                                value: "0.005 ETH",
+                              },
+                              {
+                                label: "Total",
+                                value: (
+                                  <CryptoAmount symbol="ETH" amount={100} style={{ display: 'inline-flex' }} />
+                                ),
+                              }
+                            ]
+                          }
+                        ]}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="border-t p-4 flex justify-between">
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    onClick={() => setStep("DETAILS")}
+                    disabled={!values.image}
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={false}
+                  >
+                    Mint
                   </button>
                 </div>
               </div>
