@@ -9866,10 +9866,10 @@
   optionalDependencies:
     "fsevents" "^2.3.2"
 
-"react-web3-daisyui@^0.0.4":
-  "integrity" "sha512-cDZs5lAVpXecdJNJfDAz6WFtN4pT3WSi5fd6jpmBygy5GZIlsI+cQo0fIIBYkgzx9FKYWrJbZfitsZ7X2jzqxw=="
-  "resolved" "https://registry.npmjs.org/react-web3-daisyui/-/react-web3-daisyui-0.0.4.tgz"
-  "version" "0.0.4"
+"react-web3-daisyui@^0.0.6":
+  "integrity" "sha512-oA1JpXZNhgz6HUpp6v71Kbr8afB/0xlvK0gDyBtq+T69BVjD59q6mmyRAVBvkaiP975TbhnpNdvwEUGpRbKDkA=="
+  "resolved" "https://registry.npmjs.org/react-web3-daisyui/-/react-web3-daisyui-0.0.6.tgz"
+  "version" "0.0.6"
   dependencies:
     "axios" "^0.27.2"
     "classnames" "^2.3.1"

@@ -1,8 +1,13 @@
-import React, { createContext, FC, useContext, useEffect, useState } from "react"
-import { BasicProvider } from "react-web3-daisyui"
-import { EthProvider } from "react-web3-daisyui/dist/eth"
-import { providers } from 'ethers'
-import Web3Modal from 'web3modal'
+import React, {
+  createContext,
+  FC,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
+import { EthProvider } from "react-web3-daisyui/dist/eth";
+import { providers } from "ethers";
+import Web3Modal from "web3modal";
 
 const web3Modal = new Web3Modal({
   cacheProvider: true, // very important
@@ -10,49 +15,67 @@ const web3Modal = new Web3Modal({
 });
 
 export interface Web3Context {
-  ethersProvider?: providers.Web3Provider
-  accountAddress?: string
-  chainId?: number
-  connectWallet: () => Promise<any>
-  loading?: boolean
+  ethersProvider?: providers.Web3Provider;
+  accountAddress?: string;
+  chainId?: number;
+  connectWallet: () => Promise<any>;
+  loading?: boolean;
 }
 
 export const web3Context = createContext<Web3Context>({
   connectWallet: () => Promise.resolve(),
   loading: false,
-})
+});
 
-export const Web3ComponentsProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { ethersProvider, accountAddress, chainId } = useContext(web3Context)
+export const Web3ComponentsProvider: FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const { ethersProvider, accountAddress, chainId } = useContext(web3Context);
   return (
-    <BasicProvider value={{
-      cryptoIconsBaseUrl: 'https://cdn.jsdelivr.net/gh/atomiclabs/cryptocurrency-icons@bea1a9722a8c63169dcc06e86182bf2c55a76bbc/svg',
-    }}>
-      <EthProvider value={{ ethersProvider, accountAddress, chainId }}>
-        {children}
-      </EthProvider>
-    </BasicProvider>
-  )
-}
+    <EthProvider
+      value={{
+        ethersProvider,
+        accountAddress,
+        chainId,
+        cryptoIconsBaseUrl: "/symbols",
+        customNetworks: {
+          43113: {
+            name: "Avalanche FUJI",
+            nickname: "Avalanche FUJI",
+            chainId: 43113,
+            symbol: "AVAX",
+            color: "#252729",
+            ensAddress: null,
+          },
+        },
+      }}
+    >
+      {children}
+    </EthProvider>
+  );
+};
 
-export const Web3Provider: FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [ethersProvider, setEthersProvider] = useState<providers.Web3Provider>()
-  const [accountAddress, setAccountAddress] = useState<string>()
-  const [chainId, setChainId] = useState<number>()
-  const [loading, setLoading] = useState<boolean>(true)
+export const Web3Provider: FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [ethersProvider, setEthersProvider] =
+    useState<providers.Web3Provider>();
+  const [accountAddress, setAccountAddress] = useState<string>();
+  const [chainId, setChainId] = useState<number>();
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if(web3Modal && web3Modal.cachedProvider){
-      connectWallet()
+    if (web3Modal && web3Modal.cachedProvider) {
+      connectWallet();
     } else {
-      setLoading(false)
+      setLoading(false);
     }
-  }, [])
+  }, []);
 
   useEffect(() => {
     (async () => {
       if (!ethersProvider) {
-        return
+        return;
       }
       window.ethereum.on("accountsChanged", async function (accounts: any) {
         if (accounts[0]) {
@@ -63,7 +86,7 @@ export const Web3Provider: FC<{ children: React.ReactNode }> = ({ children }) =>
         }
       });
       window.ethereum.on("chainChanged", async function () {
-        window.location.reload()
+        window.location.reload();
       });
     })();
   }, [ethersProvider]);
@@ -75,20 +98,24 @@ export const Web3Provider: FC<{ children: React.ReactNode }> = ({ children }) =>
     const provider = await web3Modal.connect();
     const ethersProvider = new providers.Web3Provider(provider);
     const accountAddress = await ethersProvider.getSigner().getAddress();
-    const network = await ethersProvider.getNetwork()
-    setEthersProvider(ethersProvider)
-    setAccountAddress(accountAddress)
-    setChainId(network.chainId)
-    setLoading(false)
-  }
+    const network = await ethersProvider.getNetwork();
+    setEthersProvider(ethersProvider);
+    setAccountAddress(accountAddress);
+    setChainId(network.chainId);
+    setLoading(false);
+  };
 
-
-  
   return (
-    <web3Context.Provider value={{ ethersProvider, accountAddress, chainId, connectWallet, loading }}>
-      <Web3ComponentsProvider>
-        {children}
-      </Web3ComponentsProvider>
+    <web3Context.Provider
+      value={{
+        ethersProvider,
+        accountAddress,
+        chainId,
+        connectWallet,
+        loading,
+      }}
+    >
+      <Web3ComponentsProvider>{children}</Web3ComponentsProvider>
     </web3Context.Provider>
-  )
-}
+  );
+};

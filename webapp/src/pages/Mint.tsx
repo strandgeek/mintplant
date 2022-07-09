@@ -12,12 +12,11 @@ import { uploadWeb3Files, uploadWeb3Json } from "../lib/uploadFile";
 import classNames from "classnames";
 import { renameFile } from "../utils/file";
 import { LocationPicker } from "../components/LocationPicker";
-import { Country, reverseGeocode } from "../utils/gmaps";
+import { Country } from "../utils/gmaps";
 import { uriToGatewayUrl } from "../utils/web3storage";
-import { MyTransactionSummary } from "react-web3-daisyui/dist/eth";
+import { MyTransactionSummary, CryptoAmount } from "react-web3-daisyui/dist/eth";
 import { useWeb3 } from "../hooks/useWeb3";
 import { getShortString } from "../utils/string";
-import { CryptoAmount } from "react-web3-daisyui";
 
 export interface MintProps {}
 
@@ -297,6 +296,7 @@ export const Mint: FC<MintProps> = () => {
                         Transaction Summary
                       </h1>
                       <MyTransactionSummary
+                        symbol="AVAX"
                         content={[
                           {
                             name: "Token Info",
@@ -308,18 +308,6 @@ export const Mint: FC<MintProps> = () => {
                               {
                                 label: "Tree Species",
                                 value: values.treeSpecies,
-                              },
-                              {
-                                label: "Country",
-                                value: values.location?.country.name || 'None',
-                              },
-                              {
-                                label: "Longitude",
-                                value: values.location?.lng,
-                              },
-                              {
-                                label: "Latitude",
-                                value: values.location?.lat,
                               },
                               {
                                 label: "Metadata",
@@ -345,7 +333,7 @@ export const Mint: FC<MintProps> = () => {
                               {
                                 label: "Total",
                                 value: (
-                                  <CryptoAmount symbol="ETH" amount={100} style={{ display: 'inline-flex' }} />
+                                  <CryptoAmount symbol="AVAX" amount={100} style={{ display: 'inline-flex' }} />
                                 ),
                               }
                             ]
