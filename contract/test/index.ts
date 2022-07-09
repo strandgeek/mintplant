@@ -3,17 +3,22 @@ import { ethers } from "hardhat";
 
 describe("Greeter", function () {
   it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+    const MintPlant = await ethers.getContractFactory("MintPlant");
+    const mintplant = await MintPlant.deploy();
+    await mintplant.deployed();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
+    const [deployer] = await ethers.getSigners();
+    console.log(deployer);
 
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
+    expect(await mintplant.safeMint(deployer.address, "ipfs://12345")).to.equal(
+      "Hello, world!"
+    );
 
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
+    // const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
 
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    // // wait until the transaction is mined
+    // await setGreetingTx.wait();
+
+    // expect(await greeter.greet()).to.equal("Hola, mundo!");
   });
 });
