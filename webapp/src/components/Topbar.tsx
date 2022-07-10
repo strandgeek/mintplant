@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect, useState } from "react";
 import { MyAccountInfo } from "react-web3-daisyui/dist/eth";
 import { useWeb3 } from "../hooks/useWeb3";
 import { Disclosure } from "@headlessui/react";
@@ -9,6 +9,7 @@ import { ConnectWalletButton } from "./ConnectWalletButton";
 // Assets
 import logoSrc from "../assets/img/logo.png";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useContract } from "../hooks/useContract";
 
 export interface TopbarProps {}
 
@@ -22,6 +23,15 @@ export const Topbar: FC<TopbarProps> = (props) => {
   const { accountAddress, loading, connectWallet } = useWeb3();
   const location = useLocation();
   const navigate = useNavigate();
+  const [balance, setBalance] = useState<number>(0)
+  const contract = useContract();
+  useEffect(() => {
+    (async () => {
+      const balance = await contract.balanceOf(accountAddress);
+      setBalance(balance.toNumber())
+    })();
+  }, [accountAddress, contract]);
+
   const links: NavigationLink[] = [
     { name: "Home", href: "/", current: true },
     { name: "About", href: "/about", current: false },
@@ -38,10 +48,10 @@ export const Topbar: FC<TopbarProps> = (props) => {
             className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
           >
             <li>
-              <a className="justify-between">
+              <Link to="/my-tokens" className="justify-between">
                 My Tokens
-                <span className="badge badge-primary">2</span>
-              </a>
+                <span className="badge badge-primary">{balance}</span>
+              </Link>
             </li>
           </ul>
         </div>

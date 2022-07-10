@@ -2,10 +2,7 @@ import React, { FC, useState } from "react";
 import { MainLayout } from "../layouts/MainLayout";
 import plantPhotoSrc from "../assets/img/plant-photo.png";
 import plantMintedSrc from "../assets/img/plant-minted.png";
-import {
-  CameraIcon,
-  LocationMarkerIcon,
-} from "@heroicons/react/outline";
+import { CameraIcon, LocationMarkerIcon } from "@heroicons/react/outline";
 import { useForm } from "react-hook-form";
 import { uploadWeb3Files, uploadWeb3Json } from "../lib/uploadFile";
 import classNames from "classnames";
@@ -54,7 +51,7 @@ export const Mint: FC<MintProps> = () => {
   const [mintedToken, setMintedToken] = useState<number | null>(null);
   const [gasPrice, setGasPrice] = useState<number | null>(null);
   const [estimatedGas, setEstimatedGas] = useState<number | null>(null);
-  const { ethersProvider } = useWeb3()
+  const { ethersProvider } = useWeb3();
   const contract = useContract();
   const iface = useInterface();
   const {
@@ -73,54 +70,57 @@ export const Mint: FC<MintProps> = () => {
 
   const estimateGas = async () => {
     try {
-      const gasPrice = await ethersProvider?.getGasPrice()
-      const gas = await contract.estimateGas.safeMint(accountAddress, metadataUri);
-      setEstimatedGas(gas.toNumber())
-      setGasPrice(gasPrice?.toNumber() || null)
+      const gasPrice = await ethersProvider?.getGasPrice();
+      const gas = await contract.estimateGas.safeMint(
+        accountAddress,
+        metadataUri
+      );
+      setEstimatedGas(gas.toNumber());
+      setGasPrice(gasPrice?.toNumber() || null);
     } catch (error) {
-      console.error('Could not estimate gas')
+      console.error("Could not estimate gas");
     }
-  }
+  };
 
   const getGasPriceFormatted = () => {
     if (!gasPrice) {
-      return
+      return;
     }
-    const gasPriceAvax = gasPrice * 10**-18
+    const gasPriceAvax = gasPrice * 10 ** -18;
     if (gasPriceAvax) {
-      const totalFormatted = new Intl.NumberFormat('en-US', {
+      const totalFormatted = new Intl.NumberFormat("en-US", {
         maximumFractionDigits: 8,
         minimumFractionDigits: 8,
-      }).format(gasPriceAvax)
-      return `${totalFormatted}`
+      }).format(gasPriceAvax);
+      return `${totalFormatted}`;
     }
-    return null
-  }
+    return null;
+  };
 
   const getTotalGasFee = () => {
     if (!gasPrice || !estimatedGas) {
-      return 0
+      return 0;
     }
-    const gasPriceAvax = gasPrice * 10**-18
-    const total = gasPriceAvax * estimatedGas
-    return total
-  }
+    const gasPriceAvax = gasPrice * 10 ** -18;
+    const total = gasPriceAvax * estimatedGas;
+    return total;
+  };
 
   const getTotalGasFeeFormatted = () => {
     if (!gasPrice || !estimatedGas) {
-      return
+      return;
     }
-    const gasPriceAvax = gasPrice * 10**-18
-    const total = gasPriceAvax * estimatedGas
+    const gasPriceAvax = gasPrice * 10 ** -18;
+    const total = gasPriceAvax * estimatedGas;
     if (total) {
-      const totalFormatted = new Intl.NumberFormat('en-US', {
+      const totalFormatted = new Intl.NumberFormat("en-US", {
         maximumFractionDigits: 4,
         minimumFractionDigits: 4,
-      }).format(total)
-      return `${totalFormatted}`
+      }).format(total);
+      return `${totalFormatted}`;
     }
-    return null
-  }
+    return null;
+  };
 
   const mint = async (): Promise<void> => {
     setMinting(true);
@@ -138,6 +138,16 @@ export const Mint: FC<MintProps> = () => {
     setMintedToken(log.args.tokenId.toNumber());
     setStep("SUCCESS");
     setMinting(false);
+    // @ts-ignore
+    if (typeof party !== "undefined") {
+      // @ts-ignore
+      const { confetti, variation } = party;
+      confetti(document.body, {
+        count: variation.range(140, 200),
+        size: variation.range(0.8, 1.2),
+        spread: variation.range(5, 10),
+      });
+    }
   };
 
   const onSubmit = async (data: FormValues) => {
@@ -150,7 +160,7 @@ export const Mint: FC<MintProps> = () => {
     setIsSubmitting(true);
     const metadata = await uploadWeb3Json(data, "metadata.json");
     setMetadata(metadata.cid);
-    estimateGas()
+    estimateGas();
     setStep("MINT");
     setIsSubmitting(false);
   };
@@ -414,11 +424,13 @@ export const Mint: FC<MintProps> = () => {
                             infos: [
                               {
                                 label: "Gas Price",
-                                value: `${getGasPriceFormatted() || '-'} AVAX`,
+                                value: `${getGasPriceFormatted() || "-"} AVAX`,
                               },
                               {
                                 label: "Gas Fee",
-                                value: `${getTotalGasFeeFormatted() || '-'} AVAX`,
+                                value: `${
+                                  getTotalGasFeeFormatted() || "-"
+                                } AVAX`,
                               },
                               {
                                 label: "Total",
