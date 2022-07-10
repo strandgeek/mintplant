@@ -1,11 +1,10 @@
 import React, { FC, useState } from "react";
 import { MainLayout } from "../layouts/MainLayout";
 import plantPhotoSrc from "../assets/img/plant-photo.png";
+import plantMintedSrc from "../assets/img/plant-minted.png";
 import {
   CameraIcon,
   LocationMarkerIcon,
-  MapIcon,
-  UploadIcon,
 } from "@heroicons/react/outline";
 import { useForm } from "react-hook-form";
 import { uploadWeb3Files, uploadWeb3Json } from "../lib/uploadFile";
@@ -14,9 +13,16 @@ import { renameFile } from "../utils/file";
 import { LocationPicker } from "../components/LocationPicker";
 import { Country } from "../utils/gmaps";
 import { uriToGatewayUrl } from "../utils/web3storage";
-import { MyTransactionSummary, CryptoAmount } from "react-web3-daisyui/dist/eth";
+import {
+  MyTransactionSummary,
+  CryptoAmount,
+} from "react-web3-daisyui/dist/eth";
 import { useWeb3 } from "../hooks/useWeb3";
 import { getShortString } from "../utils/string";
+import { useContract } from "../hooks/useContract";
+import { useInterface } from "../hooks/useInterface";
+import { Link } from "react-router-dom";
+import { ethers } from "ethers";
 
 export interface MintProps {}
 
@@ -34,16 +40,23 @@ interface FormValues {
   };
 }
 
-type Step = "PHOTO" | "DETAILS" | "MINT";
+type Step = "PHOTO" | "DETAILS" | "MINT" | "SUCCESS";
 
-const STEPS: Step[] = ["PHOTO", "DETAILS", "MINT"];
+const STEPS: Step[] = ["PHOTO", "DETAILS", "MINT", "SUCCESS"];
 
 export const Mint: FC<MintProps> = () => {
   const [step, setStep] = useState<Step>("PHOTO");
   const [loading, setLoading] = useState<boolean>(false);
   const [locationPickerOpen, setLocationPickerOpen] = useState<boolean>(false);
   const [metadata, setMetadata] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [minting, setMinting] = useState<boolean>(false);
+  const [mintedToken, setMintedToken] = useState<number | null>(null);
+  const [gasPrice, setGasPrice] = useState<number | null>(null);
+  const [estimatedGas, setEstimatedGas] = useState<number | null>(null);
+  const { ethersProvider } = useWeb3()
+  const contract = useContract();
+  const iface = useInterface();
   const {
     register,
     handleSubmit,
@@ -55,27 +68,100 @@ export const Mint: FC<MintProps> = () => {
       location: {},
     },
   });
-  const { accountAddress, chainId } = useWeb3();
+  const { accountAddress } = useWeb3();
+  const metadataUri = `ipfs://${metadata}`;
+
+  const estimateGas = async () => {
+    try {
+      const gasPrice = await ethersProvider?.getGasPrice()
+      const gas = await contract.estimateGas.safeMint(accountAddress, metadataUri);
+      setEstimatedGas(gas.toNumber())
+      setGasPrice(gasPrice?.toNumber() || null)
+    } catch (error) {
+      console.error('Could not estimate gas')
+    }
+  }
+
+  const getGasPriceFormatted = () => {
+    if (!gasPrice) {
+      return
+    }
+    const gasPriceAvax = gasPrice * 10**-18
+    if (gasPriceAvax) {
+      const totalFormatted = new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 8,
+        minimumFractionDigits: 8,
+      }).format(gasPriceAvax)
+      return `${totalFormatted}`
+    }
+    return null
+  }
+
+  const getTotalGasFee = () => {
+    if (!gasPrice || !estimatedGas) {
+      return 0
+    }
+    const gasPriceAvax = gasPrice * 10**-18
+    const total = gasPriceAvax * estimatedGas
+    return total
+  }
+
+  const getTotalGasFeeFormatted = () => {
+    if (!gasPrice || !estimatedGas) {
+      return
+    }
+    const gasPriceAvax = gasPrice * 10**-18
+    const total = gasPriceAvax * estimatedGas
+    if (total) {
+      const totalFormatted = new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: 4,
+        minimumFractionDigits: 4,
+      }).format(total)
+      return `${totalFormatted}`
+    }
+    return null
+  }
+
+  const mint = async (): Promise<void> => {
+    setMinting(true);
+    const txSent = await contract.safeMint(accountAddress, metadataUri, {
+      gasPrice,
+    });
+    const tx = await txSent.wait();
+    if (tx.logs.length === 0) {
+      // TODO: add toast alert here
+      console.error("Could not parse tx logs");
+      setMinting(false);
+      return;
+    }
+    const log = iface.parseLog(tx.logs[0]);
+    setMintedToken(log.args.tokenId.toNumber());
+    setStep("SUCCESS");
+    setMinting(false);
+  };
+
   const onSubmit = async (data: FormValues) => {
     if (!data.location.country) {
-      return
+      return;
     }
     if (step !== "DETAILS") {
       return;
     }
-    setIsSubmitting(true)
+    setIsSubmitting(true);
     const metadata = await uploadWeb3Json(data, "metadata.json");
     setMetadata(metadata.cid);
+    estimateGas()
     setStep("MINT");
-    setIsSubmitting(false)
+    setIsSubmitting(false);
   };
+
   const renderProgress = () => {
     const currentIdx = STEPS.findIndex((s) => s === step);
     const getClassName = (idx: number) =>
       currentIdx < idx ? "step" : "step step-primary";
     return (
       <ul className="steps w-full">
-        {["Plant", "Details", "Mint"].map((label, idx) => (
+        {["Plant", "Details", "Mint", "Success"].map((label, idx) => (
           <li className={getClassName(idx)}>{label}</li>
         ))}
       </ul>
@@ -110,7 +196,6 @@ export const Mint: FC<MintProps> = () => {
     !values.treeSpecies ||
     !values.location.lat ||
     !values.location.lng;
-  const metadataUri = `ipfs://${metadata}`
   return (
     <MainLayout>
       <LocationPicker
@@ -254,8 +339,8 @@ export const Mint: FC<MintProps> = () => {
                       className="btn btn-outline btn-primary"
                       type="button"
                       onClick={(e) => {
-                        e.preventDefault()
-                        setLocationPickerOpen(true)
+                        e.preventDefault();
+                        setLocationPickerOpen(true);
                       }}
                     >
                       <LocationMarkerIcon className="w-5 h-5 mr-2" />
@@ -279,10 +364,12 @@ export const Mint: FC<MintProps> = () => {
                   </button>
                   <button
                     type="submit"
-                    className={isSubmitting ? 'btn btn-ghost loading' : 'btn btn-primary'}
+                    className={
+                      isSubmitting ? "btn btn-ghost loading" : "btn btn-primary"
+                    }
                     disabled={disableSubmit}
                   >
-                    {isSubmitting ? 'Uploading Metadata...' : 'Next'}
+                    {isSubmitting ? "Uploading Metadata..." : "Next"}
                   </button>
                 </div>
               </div>
@@ -292,9 +379,7 @@ export const Mint: FC<MintProps> = () => {
                 <div className="p-8">
                   {accountAddress && (
                     <div>
-                      <h1 className="text-lg mb-4">
-                        Transaction Summary
-                      </h1>
+                      <h1 className="text-lg mb-4">Transaction Summary</h1>
                       <MyTransactionSummary
                         symbol="AVAX"
                         content={[
@@ -312,32 +397,41 @@ export const Mint: FC<MintProps> = () => {
                               {
                                 label: "Metadata",
                                 value: (
-                                  <a href={uriToGatewayUrl(metadataUri)} className="text-primary" target="_blank" rel="noreferrer">
-                                    ipfs://{getShortString(metadata || '')}
+                                  <a
+                                    href={uriToGatewayUrl(metadataUri)}
+                                    className="text-primary"
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    ipfs://{getShortString(metadata || "")}
                                   </a>
                                 ),
-                              }
-                            ]
+                              },
+                            ],
                           },
                           {
                             name: "Gas and Fees",
                             infos: [
                               {
-                                label: "Gas",
-                                value: "1000",
+                                label: "Gas Price",
+                                value: `${getGasPriceFormatted() || '-'} AVAX`,
                               },
                               {
                                 label: "Gas Fee",
-                                value: "0.005 ETH",
+                                value: `${getTotalGasFeeFormatted() || '-'} AVAX`,
                               },
                               {
                                 label: "Total",
                                 value: (
-                                  <CryptoAmount symbol="AVAX" amount={100} style={{ display: 'inline-flex' }} />
+                                  <CryptoAmount
+                                    symbol="AVAX"
+                                    amount={getTotalGasFee()}
+                                    style={{ display: "inline-flex" }}
+                                  />
                                 ),
-                              }
-                            ]
-                          }
+                              },
+                            ],
+                          },
                         ]}
                       />
                     </div>
@@ -354,11 +448,39 @@ export const Mint: FC<MintProps> = () => {
                   </button>
                   <button
                     type="button"
-                    className="btn btn-primary"
-                    disabled={false}
+                    className={classNames("btn btn-primary", {
+                      loading: minting,
+                    })}
+                    disabled={!metadata}
+                    onClick={() => mint()}
                   >
-                    Mint
+                    {minting ? "Minting..." : "Mint"}
                   </button>
+                </div>
+              </div>
+            )}
+            {step === "SUCCESS" && (
+              <div>
+                <div className="p-8">
+                  <img
+                    alt="Tree Minted"
+                    className="w-64 h-64 object-cover mb-4 mx-auto"
+                    src={plantMintedSrc}
+                  />
+                  <div className="text-center font-semibold text-2xl">
+                    Success!
+                  </div>
+                  <div className="text-center mt-2">
+                    You contributed to reforestation!
+                  </div>
+                  <div className="text-center">
+                    <Link
+                      to={`/tokens/${mintedToken}`}
+                      className="btn btn-primary btn-outline mt-8"
+                    >
+                      View Token #{mintedToken}
+                    </Link>
+                  </div>
                 </div>
               </div>
             )}
