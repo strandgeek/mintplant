@@ -38,16 +38,6 @@ export const Web3ComponentsProvider: FC<{ children: React.ReactNode }> = ({
         accountAddress,
         chainId,
         cryptoIconsBaseUrl: "/symbols",
-        customNetworks: {
-          43113: {
-            name: "Avalanche FUJI",
-            nickname: "Avalanche FUJI",
-            chainId: 43113,
-            symbol: "AVAX",
-            color: "#252729",
-            ensAddress: null,
-          },
-        },
       }}
     >
       {children}

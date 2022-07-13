@@ -391,7 +391,7 @@ export const Mint: FC<MintProps> = () => {
                     <div>
                       <h1 className="text-lg mb-4">Transaction Summary</h1>
                       <MyTransactionSummary
-                        symbol="AVAX"
+                        symbol="ETH"
                         content={[
                           {
                             name: "Token Info",
@@ -424,19 +424,19 @@ export const Mint: FC<MintProps> = () => {
                             infos: [
                               {
                                 label: "Gas Price",
-                                value: `${getGasPriceFormatted() || "-"} AVAX`,
+                                value: `${getGasPriceFormatted() || "-"} ETH`,
                               },
                               {
                                 label: "Gas Fee",
                                 value: `${
                                   getTotalGasFeeFormatted() || "-"
-                                } AVAX`,
+                                } ETH`,
                               },
                               {
                                 label: "Total",
                                 value: (
                                   <CryptoAmount
-                                    symbol="AVAX"
+                                    symbol="ETH"
                                     amount={getTotalGasFee()}
                                     style={{ display: "inline-flex" }}
                                   />
