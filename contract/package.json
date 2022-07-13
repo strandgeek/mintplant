@@ -1,7 +1,7 @@
 {
   "name": "hardhat-project",
   "scripts": {
-    "deploy:testnet": "hardhat run scripts/deploy.ts --network fuji"
+    "deploy:testnet": "hardhat run scripts/deploy.ts --network rinkeby"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
@@ -36,6 +36,7 @@
     "typescript": "^4.7.4"
   },
   "dependencies": {
+    "@chainlink/contracts": "^0.4.1",
     "@openzeppelin/contracts": "^4.7.0"
   }
 }
