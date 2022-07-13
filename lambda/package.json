@@ -1,0 +1,19 @@
+{
+  "name": "mintplant-lambda",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "zip -r deploy.zip ./"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "ethers": "^5.6.9",
+    "install": "^0.13.0",
+    "npm": "^8.13.2",
+    "web-file-polyfill": "^1.0.4",
+    "web3.storage": "^4.3.0"
+  }
+}
