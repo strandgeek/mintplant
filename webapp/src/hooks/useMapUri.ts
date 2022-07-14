@@ -1,12 +1,12 @@
+import axios from "axios";
 import { ethers } from "ethers";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import ABI from '../abi.json'
+import { MapData } from "../types/mapData";
+import { uriToGatewayUrl } from "../utils/web3storage";
 
-interface MapData {
-  tokens: any[]
-}
-
-export const useMapData = (): MapData => {
+export const useMapData = (): MapData | null => {
+  const [mapData, setMapData] = useState<MapData | null>(null)
   useEffect(() => {
     const provider = new ethers.providers.StaticJsonRpcProvider(
       process.env.REACT_APP_RINKEBY_RPC_URL, 
@@ -17,9 +17,10 @@ export const useMapData = (): MapData => {
     );
     const contractAddress = process.env.REACT_APP_CONTRACT_ADDRESS!
     const contract = new ethers.Contract(contractAddress, ABI, provider)
-    contract.mapURI().then(console.log).catch(console.log)
+    contract.mapURI().then(async (uri: string) => {
+      const { data } = await axios.get(uriToGatewayUrl(uri))
+      setMapData(data as MapData)
+    }).catch(console.log)
   }, [])
-  return {
-    tokens: [],
-  }
+  return mapData
 }

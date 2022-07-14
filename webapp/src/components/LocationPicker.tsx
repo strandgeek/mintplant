@@ -51,6 +51,7 @@ export const LocationPicker: FC<LocationPickerProps> = ({
   return (
     <Modal open={open} setOpen={setOpen}>
       <MemoMap
+        zoom={2}
         defaultLocation={{
           lat: location?.lat || 38.272688535980976,
           lng: location?.lng || -7.734375,
