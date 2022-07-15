@@ -52,6 +52,7 @@ export const Mint: FC<MintProps> = () => {
   const [gasPrice, setGasPrice] = useState<number | null>(null);
   const [estimatedGas, setEstimatedGas] = useState<number | null>(null);
   const { ethersProvider } = useWeb3();
+  const [image, setImage] = useState<string | null>(null)
   const contract = useContract();
   const iface = useInterface();
   const {
@@ -187,6 +188,7 @@ export const Mint: FC<MintProps> = () => {
     setLoading(false);
     const uri = `ipfs://${web3File.cid}`;
     setValue("image", uri);
+    setImage(uri);
   };
   const uploadBtnClasses = classNames("btn btn-outline btn-primary w-full", {
     loading,
@@ -222,12 +224,12 @@ export const Mint: FC<MintProps> = () => {
                 <div className="p-8 w-full">
                   <div className="w-full text-center">
                     <div className="flex-col items-center justify-center">
-                      {values.image ? (
+                      {image ? (
                         <div>
                           <img
                             alt="Upload Preview"
                             className="w-full h-80 object-cover mb-4"
-                            src={uriToGatewayUrl(values.image)}
+                            src={uriToGatewayUrl(image)}
                           />
                         </div>
                       ) : (
@@ -276,7 +278,7 @@ export const Mint: FC<MintProps> = () => {
                   <button
                     className="btn btn-primary"
                     onClick={() => setStep("DETAILS")}
-                    disabled={!values.image}
+                    disabled={!image}
                   >
                     Next
                   </button>
