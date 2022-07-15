@@ -7,8 +7,7 @@ const { ABI } = require('./abi')
 const uriToGatewayUrl = (uri) => {
   const paths = uri.replace('ipfs://', '')
   const [cid, ...rest] = paths.split('/')
-  // return `https://${cid}.ipfs.dweb.link/${rest.join('/')}`
-  return `https://ipfs.io/ipfs/${cid}`
+  return `https://${cid}.ipfs.dweb.link/${rest.join('/')}`
 }
 
 const web3StorageClient = new Web3Storage({ token: process.env.WEB3_STORAGE_TOKEN })
@@ -32,8 +31,6 @@ const uploadMapJson = async (data) => {
     return files[0].cid
 }
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
-
 exports.handler = async (event) => {
   try {
     const contractAddress = process.env.CONTRACT_ADDRESS
@@ -47,12 +44,11 @@ exports.handler = async (event) => {
         ...data
       }
     }
-    const tokens = []
-    for (let tokenId = 0; tokenId<total; tokenId++) {
-      const token = await fetchTokenData(tokenId)
-      tokens.push(token)
-      await delay(400)
+    const tokensToFetch = []
+    for (let i=0; i<total; i++) {
+      tokensToFetch.push(i)
     }
+    const tokens = await Promise.all(tokensToFetch.map(tokenId => fetchTokenData(tokenId)))
     const mapsCID = await uploadMapJson({
       total,
       tokens,

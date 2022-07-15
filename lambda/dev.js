@@ -7,7 +7,7 @@ const { handler } = require('./index')
 
 const app = express()
 
-app.get('/', async (req, res) => {
+app.get(['/', '/*'], async (req, res) => {
   try {    
     const result = await handler()
     return res.status(result.statusCode).send(result.body);
