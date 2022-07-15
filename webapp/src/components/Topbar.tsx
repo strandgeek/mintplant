@@ -32,28 +32,12 @@ export const Topbar: FC<TopbarProps> = (props) => {
     })();
   }, [accountAddress, contract]);
 
-  const links: NavigationLink[] = [
-    { name: "Home", href: "/", current: true },
-    { name: "About", href: "/about", current: false },
-  ];
+  const links: NavigationLink[] = [];
   const renderUserInfo = () => {
     if (accountAddress) {
       return (
-        <div className="dropdown dropdown-end">
-          <label tabIndex={0} className="btn btn-ghost normal-case">
-            <MyAccountInfo />
-          </label>
-          <ul
-            tabIndex={0}
-            className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
-          >
-            <li>
-              <Link to="/my-tokens" className="justify-between">
-                My Tokens
-                <span className="badge badge-primary">{balance}</span>
-              </Link>
-            </li>
-          </ul>
+        <div className="mx-4">
+          <MyAccountInfo />
         </div>
       );
     }

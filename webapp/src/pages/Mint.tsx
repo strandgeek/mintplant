@@ -489,10 +489,10 @@ export const Mint: FC<MintProps> = () => {
                   </div>
                   <div className="text-center">
                     <Link
-                      to={`/tokens/${mintedToken}`}
+                      to="/"
                       className="btn btn-primary btn-outline mt-8"
                     >
-                      View Token #{mintedToken}
+                      Go to Map
                     </Link>
                   </div>
                 </div>

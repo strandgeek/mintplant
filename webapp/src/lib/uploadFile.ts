@@ -11,6 +11,7 @@ export const uploadWeb3Files = async (inputFiles: FileList | File[]): Promise<We
     throw new Error('Could retrieve rootCid')
   }
   const files = await res.files()
+  console.log({ files })
   return files
 }
 
