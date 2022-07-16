@@ -27,8 +27,10 @@ export const Topbar: FC<TopbarProps> = (props) => {
   const contract = useContract();
   useEffect(() => {
     (async () => {
-      const balance = await contract.balanceOf(accountAddress);
-      setBalance(balance.toNumber())
+      if (accountAddress) {
+        const balance = await contract.balanceOf(accountAddress);
+        setBalance(balance.toNumber())
+      }
     })();
   }, [accountAddress, contract]);
 

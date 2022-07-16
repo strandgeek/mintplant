@@ -8,10 +8,19 @@ import React, {
 import { EthProvider } from "react-web3-daisyui/dist/eth";
 import { providers } from "ethers";
 import Web3Modal from "web3modal";
+import WalletConnectProvider from "@walletconnect/web3-provider";
 
 const web3Modal = new Web3Modal({
   cacheProvider: true, // very important
   network: "mainnet",
+  providerOptions: {
+    walletconnect: {
+      package: WalletConnectProvider,
+      options: {
+        infuraId: process.env.REACT_APP_WALLET_CONNECT_INFURA_ID,
+      }
+    },
+  }
 });
 
 export interface Web3Context {
@@ -20,6 +29,7 @@ export interface Web3Context {
   chainId?: number;
   connectWallet: () => Promise<any>;
   loading?: boolean;
+  signer?: providers.JsonRpcSigner
 }
 
 export const web3Context = createContext<Web3Context>({
@@ -52,6 +62,7 @@ export const Web3Provider: FC<{ children: React.ReactNode }> = ({
     useState<providers.Web3Provider>();
   const [accountAddress, setAccountAddress] = useState<string>();
   const [chainId, setChainId] = useState<number>();
+  const [signer, setSigner] = useState<providers.JsonRpcSigner>()
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
@@ -87,12 +98,14 @@ export const Web3Provider: FC<{ children: React.ReactNode }> = ({
     }
     const provider = await web3Modal.connect();
     const ethersProvider = new providers.Web3Provider(provider);
-    const accountAddress = await ethersProvider.getSigner().getAddress();
+    const signer = ethersProvider.getSigner()
+    const accountAddress = await signer.getAddress();
     const network = await ethersProvider.getNetwork();
     setEthersProvider(ethersProvider);
     setAccountAddress(accountAddress);
     setChainId(network.chainId);
     setLoading(false);
+    setSigner(signer);
   };
 
   return (
@@ -103,6 +116,7 @@ export const Web3Provider: FC<{ children: React.ReactNode }> = ({
         chainId,
         connectWallet,
         loading,
+        signer,
       }}
     >
       <Web3ComponentsProvider>{children}</Web3ComponentsProvider>
