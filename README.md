@@ -15,7 +15,7 @@
 - [📹 Video Presentation](https://www.youtube.com/watch?v=W--zBGv1oq0)
 - [📕 Techinical Overview](https://TODO)
 - [📄 Smart Contract](https://rinkeby.etherscan.io/address/0xB67bD62a7a3d8ec443388ba03b58aA475954ec82)
-- [⚡️ Live Demo](https://mintplant.co)
+- [⚡️ Live Demo Rinkeby Network](https://mintplant.co)
 --------
 
 ## About
