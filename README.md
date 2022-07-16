@@ -13,7 +13,7 @@
 
 ## Quick Links
 - [📹 Video Presentation](https://www.youtube.com/watch?v=W--zBGv1oq0)
-- [📕 Techinical Overview](https://TODO)
+- [📕 Pitch Deck](https://github.com/strandgeek/mintplant/raw/main/presentation/Pitch-Deck.pdf)
 - [📄 Smart Contract](https://rinkeby.etherscan.io/address/0xB67bD62a7a3d8ec443388ba03b58aA475954ec82)
 - [⚡️ Live Demo Rinkeby Network](https://mintplant.co)
 --------
