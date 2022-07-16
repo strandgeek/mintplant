@@ -1,4 +1,4 @@
-[![ci](https://github.com/strandgeek/mintplant/actions/workflows/build.yml/badge.svg)](https://github.com/strandgeek/mintplant/actions/workflows/build.yml) ![GitHub](https://img.shields.io/github/license/strandgeek/mintplant) ![GitHub issues](https://img.shields.io/github/issues/strandgeek/mintplant) ![GitHub last commit](https://img.shields.io/github/last-commit/strandgeek/mintplant)
+![GitHub](https://img.shields.io/github/license/strandgeek/mintplant) ![GitHub issues](https://img.shields.io/github/issues/strandgeek/mintplant) ![GitHub last commit](https://img.shields.io/github/last-commit/strandgeek/mintplant)
 
 # MintPlant
 
@@ -6,7 +6,6 @@
 1. [About](#about)
 2. [Quick Links](#quick-links)
 3. [Stack](#stack)
-4. [Running in Production](#running-in-production)
 5. [Development](#development)
 
 
