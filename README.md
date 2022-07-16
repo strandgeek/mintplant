@@ -3,8 +3,8 @@
 # MintPlant
 
 ## Table of Contents
-1. [About](#about)
-2. [Quick Links](#quick-links)
+1. [Quick Links](#quick-links)
+2. [About](#about)
 3. [Stack](#stack)
 5. [Development](#development)
 
